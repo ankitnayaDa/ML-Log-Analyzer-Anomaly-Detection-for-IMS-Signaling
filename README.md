@@ -1,49 +1,75 @@
-###  AI-Powered Telecom Log Analyzer
+# AI-Powered Telecom Log Analyzer
 
-## Objective: 
+As telecom networks transition to 5G and Cloud-Native architectures, manual log analysis of SIP/Diameter flows becomes a bottleneck. This project implements an Unsupervised Machine Learning approach to automatically identify anomalies in telecom signaling logs.
+By using the Isolation Forest algorithm, this tool flags irregular latencies and unexpected protocol status codes without requiring manually labeled "failure" data, significantly reducing Root Cause Analysis (RCA) time in CI/CD pipelines..
 
-To reduce manual debugging time by using Machine Learning to automatically identify anomalies in 4G/5G/IMS logs and packet traces
+## Key Goals
 
-1. The Problem Statement
+- Reduce manual debugging time for IMS/VoIP/telecom call flows
+- Convert PCAP traces to structured data for ML and comparison
+- Train a baseline model on successful (golden) traces and detect anomalies
+- Integrate with Robot Framework or CI to run on test failures
 
-Currently, debugging 5G or IMS call flows requires manual log/trace analysis using Wireshark and Linux CLI. This is time-consuming when dealing with multi-node test environments.
+## Key features
 
-2. Proposed AI Solution
+- Protocol-Aware Parsing: Extracts features from SIP, Diameter, and 3GPP-compliant logs using Python and Regex.
+- Unsupervised Learning: Utilizes Scikit-learn’s IsolationForest to detect outliers in high-dimensional protocol data.
+- Feature Engineering: Converts categorical telecom methods (INVITE, REGISTER, etc.) into numerical vectors via One-Hot Encoding.
+- CI/CD Ready: Designed to be integrated into Jenkins/Robot Framework as a post-test diagnostic utility.
 
-Build a Python-based utility that integrates with your current Robot Framework suites.
+## Technical Stack
 
-    Data Collection: Use your existing skills in packet tracing (Wireshark/PCAP) to collect "Golden" (successful) call flow traces.
+- Language: Python 3.9+
+- ML Libraries: Scikit-learn, Pandas, NumPy
+- Telecom Interfaces: Wireshark (pcap export), SIP, Diameter
 
-Technique (ML): Use Unsupervised Learning (K-Means Clustering) or Sequence Alignment to compare a failed test trace against the "Golden" dataset.
+## Repository layout
 
-Automation Integration: The tool will trigger automatically upon a Robot Framework test failure, parse the logs, and highlight the exact protocol message (SIP/Diameter) where the deviation occurred.
+- `IMS.pcap`, `siminv.pcap` — example PCAP files (raw traces)
+- `pcap_to_json.py` — PCAP → structured JSON conversion script
+- `train_model.py` — training and evaluation script for anomaly detection
+- `data/ims_calls.json` — example structured dataset produced from PCAPs
 
-Here is a technical proposal designed to bridge your current role at Nokia with AI/ML techniques. By focusing on Automated Root Cause Analysis (RCA), you can leverage your existing skills in Python , Wireshark packet tracing , and 5G/IMS call flows.
+## Quickstart
 
-Technical Proposal: AI-Powered Telecom Log Analyzer
+1. Prepare a Python environment (recommended: Python 3.8+).
 
-Objective: To reduce manual debugging time by using Machine Learning to automatically identify anomalies in 4G/5G/IMS logs and packet traces.
-1. The Problem Statement
+2. Install required packages (add or update this project `requirements.txt` as needed):
 
-Currently, debugging 5G or IMS call flows requires manual log/trace analysis using Wireshark and Linux CLI. This is time-consuming when dealing with multi-node test environments.
+```bash
+python -m pip install pandas scikit-learn pyshark
+```
 
-2. Proposed AI Solution
+3. Convert PCAP to JSON (example):
 
-Build a Python-based utility that integrates with your current Robot Framework suites.
+```bash
+python pcap_to_json.py
+```
 
-Data Collection: Use your existing skills in packet tracing (Wireshark/PCAP) to collect "Golden" (successful) call flow traces.
+4. Train the model (example):
 
-Technique (ML): Use Unsupervised Learning (K-Means Clustering) or Sequence Alignment to compare a failed test trace against the "Golden" dataset.
+```bash
+python train_model.py
+```
 
-Automation Integration: The tool will trigger automatically upon a Robot Framework test failure, parse the logs, and highlight the exact protocol message (SIP/Diameter) where the deviation occurred.
+Note: The exact script arguments can be inspected in `pcap_to_json.py` and `train_model.py` — adapt flags as implemented.
 
-3. Implementation Roadmap
-Phase	Activity	Tools to Use
-Phase 1: Setup	Convert .pcap into structured json data.	
-Python, Pandas
-Phase 2: ML Model	Train a simple Anomaly Detection model on normal call flows.	
-Scikit-learn, Pytest
-Phase 3: Integration	Create a Robot Framework listener to run the analyzer on failure.	
-Robot Framework
-Phase 4: Scaling	Deploy the analyzer as a microservice in your K8s environment.	
-Docker, Kubernetes
+## Data format
+
+The converter produces a JSON array of call-flow records. Each record should contain timestamped protocol messages (SIP/Diameter/etc.) and minimal meta fields (call id, from/to, message type). This structured format lets the ML stage extract sequences, timing, and feature vectors for clustering or sequence-alignment.
+
+## Approach (high level)
+
+- Data ingestion: convert PCAPs into structured JSON call-flows using `pcap_to_json.py`.
+- Feature extraction: build sequence/timing features from the structured call flows.
+- Modeling: use unsupervised methods (K-Means, clustering, or sequence-alignment) to learn typical call-flow behavior.
+- Detection: flag deviations from the learned baseline and surface the specific message(s) where divergence occurs.
+
+## Integration ideas
+
+- Create a Robot Framework listener that calls the analyzer on test failure and attaches a short report describing the divergent message and similarity scores to a "golden" trace.
+- Wrap the analyzer in a small HTTP service or CLI for CI integration.
+
+## License
+
+Add a license file or header if you plan to open-source this repository.
