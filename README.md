@@ -106,17 +106,12 @@ Output:
 ## Repository Structure
 ```
 ML-Log-Analyzer-Anomaly-Detection-for-IMS-Signaling/
-├── __init__.py
 ├── detect_anomalies.py
 ├── evaluate_model.py
-├── IMS.pcap
-├── IMS1.pcap
-├── output.txt
 ├── pcap_to_json.py
 ├── pipeline.py
 ├── README.md
 ├── requirements.txt
-├── siminv.pcap
 ├── train_model.py
 ├── data/
 │   ├── ims_calls.json
