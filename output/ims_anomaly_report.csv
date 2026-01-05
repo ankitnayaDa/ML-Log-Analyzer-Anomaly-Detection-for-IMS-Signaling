@@ -1,0 +1,1 @@
+call_id,method,invite_time,response_times_ms,final_status,latency_ms,anomaly,latency_100,latency_180,latency_200,invite_to_180_gap,anomaly_flag
